@@ -30,3 +30,5 @@ Credits:
 	Other:
 		jQuery (jquery.com)
 		Responsive Tools (github.com/ajlkn/responsive-tools)
+## Contact
+📧 Email: [samosstakepool@outlook.com](mailto:samosstakepool@outlook.com)
