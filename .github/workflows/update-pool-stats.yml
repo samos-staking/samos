@@ -1,0 +1,86 @@
+name: Update live pool stats
+
+# Refreshes stats.json from the Cardano chain (via the Koios API) and commits it.
+# This runs on GitHub's servers, not in a visitor's browser, so it is never affected
+# by ad-blockers, privacy extensions, or Koios's CORS policy — those only apply to
+# requests made from a browser. The site itself just reads the resulting stats.json
+# as a same-origin file, which always works.
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"   # every 6 hours
+  workflow_dispatch: {}       # lets you trigger a refresh manually from the Actions tab
+
+permissions:
+  contents: write
+
+env:
+  POOL_ID: pool158je65d93ghx2sedvazczpxjvnx0k6mwxwup8vv6uxnz2x0xal4
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch core figures (pledge, fee, margin, status, active stake)
+        run: |
+          curl -sS "https://api.koios.rest/api/v1/pool_list?pool_id_bech32=eq.${POOL_ID}&select=pledge,fixed_cost,margin,pool_status,active_stake" \
+            -H "Accept: application/json" -o core.json
+          cat core.json
+
+      - name: Fetch extended figures (saturation, delegators, blocks minted)
+        run: |
+          curl -sS -X POST "https://api.koios.rest/api/v1/pool_info" \
+            -H "Content-Type: application/json" -H "Accept: application/json" \
+            -d "{\"_pool_bech32_ids\":[\"${POOL_ID}\"]}" -o extended.json || echo "[]" > extended.json
+          cat extended.json
+
+      - name: Build stats.json
+        run: |
+          python3 - <<'PYEOF'
+          import json, datetime
+
+          def load(path):
+              try:
+                  with open(path) as f:
+                      data = json.load(f)
+                  return data[0] if data else {}
+              except Exception:
+                  return {}
+
+          c = load("core.json")
+          e = load("extended.json")
+
+          def ada(lovelace):
+              if lovelace is None:
+                  return None
+              return round(int(lovelace) / 1_000_000)
+
+          data = {
+              "generated_at": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+              "pledge_ada": ada(c.get("pledge")),
+              "fixed_fee_ada": ada(c.get("fixed_cost")),
+              "margin_pct": round(float(c["margin"]) * 100, 2) if c.get("margin") is not None else None,
+              "pool_status": c.get("pool_status"),
+              "active_stake_ada": ada(c.get("active_stake")),
+              "live_stake_ada": ada(e.get("live_stake")) if e.get("live_stake") is not None else ada(c.get("active_stake")),
+              "saturation_pct": round(float(e["live_saturation"]) * 100, 3) if e.get("live_saturation") is not None else None,
+              "delegators": e.get("live_delegators"),
+              "blocks_minted": e.get("block_count"),
+          }
+
+          with open("stats.json", "w") as f:
+              json.dump(data, f, indent=2)
+              f.write("\n")
+
+          print(json.dumps(data, indent=2))
+          PYEOF
+
+      - name: Commit stats.json if it changed
+        run: |
+          git config user.name "samos-stats-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add stats.json
+          git diff --cached --quiet || git commit -m "Update live pool stats [automated]"
+          git push
