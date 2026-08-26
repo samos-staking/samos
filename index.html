@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAMOS &mdash; Cardano Stake Pool</title>
+<meta name="description" content="SAMOS is a single, independently run Cardano stake pool based on the Greek island of Samos. Delegate ADA, keep full ownership of your funds, and help secure a decentralized Cardano.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%230b2130'/%3E%3Cpath d='M3 20L15 4L21 20' stroke='%23c9973f' stroke-width='1.8' stroke-linejoin='round' fill='none'/%3E%3Cpath d='M9 20L15 4' stroke='%23c9973f' stroke-width='1.8' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0b2130;
+  --ink-2:#123449;
+  --marine:#1c6b8c;
+  --marine-deep:#134f68;
+  --foam:#eef4f2;
+  --paper:#ffffff;
+  --line:#d7e2e1;
+  --text:#12232b;
+  --muted:#54676e;
+  --gold:#c9973f;
+  --gold-deep:#a97c2c;
+  --terracotta:#b1552f;
+  --shadow: 0 20px 50px -25px rgba(10,30,40,0.35);
+  --maxw: 1180px;
+}
+*,*::before,*::after{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  *,*::before,*::after{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important;}
+}
+body{
+  margin:0;
+  background:var(--foam);
+  color:var(--text);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:1.05rem;
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;display:block;}
+a{color:inherit;}
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 1.75rem;}
+h1,h2,h3,h4{font-family:'Fraunces',Georgia,'Times New Roman',serif; font-weight:600; line-height:1.12; margin:0 0 0.6em; text-wrap:balance; color:var(--ink);}
+p{margin:0 0 1.1em;}
+.eyebrow{
+  font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  font-size:0.78rem; font-weight:500; letter-spacing:0.14em; text-transform:uppercase;
+  color:var(--gold-deep); display:inline-flex; align-items:center; gap:0.55em; margin-bottom:1.1em;
+}
+.eyebrow::before{content:""; width:1.6em; height:1px; background:var(--gold-deep); display:inline-block;}
+.mono{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace; font-variant-numeric:tabular-nums;}
+.section{padding:clamp(4rem,8vw,6.5rem) 0;}
+.section-head{max-width:640px; margin:0 0 3rem;}
+.section-head p{color:var(--muted); font-size:1.08rem;}
+.btn{
+  display:inline-flex; align-items:center; gap:0.55em; padding:0.85em 1.6em; border-radius:3px;
+  font-family:'Inter'; font-weight:600; font-size:0.95rem; text-decoration:none; border:1px solid transparent;
+  transition:transform .18s ease, box-shadow .18s ease, background-color .18s ease, color .18s ease, border-color .18s ease;
+  cursor:pointer;
+}
+.btn:active{transform:translateY(1px);}
+.btn-gold{background:var(--gold); color:#231604;}
+.btn-gold:hover{background:var(--gold-deep); box-shadow:var(--shadow);}
+.btn-ghost{background:transparent; color:#fff; border-color:rgba(255,255,255,0.45);}
+.btn-ghost:hover{border-color:#fff; background:rgba(255,255,255,0.08);}
+.btn-line{background:transparent; color:var(--marine-deep); border-color:var(--marine-deep);}
+.btn-line:hover{background:var(--marine-deep); color:#fff;}
+.btn-sm{padding:0.55em 0.95em; font-size:0.82rem;}
+.tri{display:inline-block; line-height:0;}
+
+/* ---------- NAV ---------- */
+.nav{
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1.15rem 1.75rem; transition:background-color .3s ease, box-shadow .3s ease, padding .3s ease;
+}
+.nav.solid{background:rgba(11,33,48,0.94); backdrop-filter:blur(6px); box-shadow:0 1px 0 rgba(255,255,255,0.06); padding:0.8rem 1.75rem;}
+.nav-inner{max-width:var(--maxw); margin:0 auto; width:100%; display:flex; align-items:center; justify-content:space-between;}
+.brand{display:flex; align-items:center; gap:0.6rem; text-decoration:none; color:#fff;}
+.brand-mark{width:20px; height:20px;}
+.brand-name{font-family:'Fraunces'; font-weight:600; letter-spacing:0.03em; font-size:1.15rem;}
+.brand-ticker{font-family:'IBM Plex Mono'; font-size:0.68rem; color:var(--gold); border:1px solid rgba(201,151,63,0.5); border-radius:3px; padding:0.1em 0.4em; margin-left:0.3em;}
+.nav-links{display:flex; align-items:center; gap:1.7rem; list-style:none; margin:0; padding:0;}
+.nav-links a{color:rgba(255,255,255,0.82); text-decoration:none; font-size:0.88rem; font-weight:500; transition:color .18s ease;}
+.nav-links a:hover{color:#fff;}
+.nav-cta{display:flex; align-items:center; gap:1rem;}
+.nav-toggle{display:none; background:none; border:0; color:#fff; font-size:1.5rem; cursor:pointer;}
+@media (max-width:920px){
+  .nav-links{
+    display:flex; flex-direction:column; gap:0; position:absolute; top:100%; left:0; right:0;
+    background:rgba(11,33,48,0.98); backdrop-filter:blur(6px); max-height:0; overflow:hidden;
+    transition:max-height .3s ease; border-top:1px solid rgba(255,255,255,0.08);
+  }
+  .nav-links.open{max-height:24rem;}
+  .nav-links li{width:100%;}
+  .nav-links a{display:block; padding:1rem 1.75rem; border-bottom:1px solid rgba(255,255,255,0.06);}
+  .nav-toggle{display:block;}
+}
+
+/* ---------- HERO ---------- */
+.hero{
+  position:relative; min-height:100svh; display:flex; align-items:flex-end;
+  background:linear-gradient(180deg, rgba(8,22,32,0.35) 0%, rgba(8,22,32,0.35) 45%, rgba(7,19,28,0.92) 100%), url('images/samos-harbor-moonlight.jpg') center 30%/cover no-repeat;
+  color:#fff;
+}
+.hero-inner{max-width:var(--maxw); margin:0 auto; width:100%; padding:9rem 1.75rem 5rem;}
+.hero .eyebrow{color:var(--gold);}
+.hero .eyebrow::before{background:var(--gold);}
+.hero h1{color:#fff; font-size:clamp(3rem,7vw,5.4rem); letter-spacing:0.01em; margin-bottom:0.3rem;}
+.hero .sub{font-family:'Fraunces'; font-style:italic; font-weight:500; font-size:clamp(1.15rem,2vw,1.5rem); color:#e8eef0; max-width:640px; margin-bottom:2.1rem;}
+.hero-ctas{display:flex; flex-wrap:wrap; gap:1rem; margin-bottom:3.2rem;}
+.hero-facts{display:flex; flex-wrap:wrap; gap:2.4rem; border-top:1px solid rgba(255,255,255,0.2); padding-top:1.6rem;}
+.hero-fact b{display:block; font-family:'IBM Plex Mono'; font-size:1.05rem; color:var(--gold); font-weight:600;}
+.hero-fact span{font-size:0.78rem; text-transform:uppercase; letter-spacing:0.08em; color:rgba(255,255,255,0.65);}
+
+/* ---------- STATS PANEL ---------- */
+.stats{background:linear-gradient(180deg,var(--ink) 0%, var(--ink-2) 100%); color:#fff;}
+.stats-top{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:1.5rem; margin-bottom:2.4rem;}
+.stats-top h2{color:#fff; margin-bottom:0.3rem;}
+.stats-top p{color:rgba(255,255,255,0.62); margin:0; max-width:520px;}
+.stats-status{display:flex; align-items:center; gap:0.55em; font-family:'IBM Plex Mono'; font-size:0.78rem; color:rgba(255,255,255,0.7);}
+.dot{width:8px; height:8px; border-radius:50%; background:#5fbf8f; box-shadow:0 0 0 4px rgba(95,191,143,0.18);}
+.dot.warn{background:var(--gold); box-shadow:0 0 0 4px rgba(201,151,63,0.18);}
+.stat-grid{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:rgba(255,255,255,0.12);
+  border:1px solid rgba(255,255,255,0.12); border-radius:6px; overflow:hidden;
+}
+.stat-tile{background:rgba(255,255,255,0.03); padding:1.6rem 1.5rem;}
+.stat-tile .label{font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:rgba(255,255,255,0.5); margin-bottom:0.6rem;}
+.stat-tile .value{font-family:'IBM Plex Mono'; font-weight:600; font-size:clamp(1.35rem,2.4vw,1.8rem); color:#fff; font-variant-numeric:tabular-nums;}
+.stat-tile .value.skeleton{color:transparent; background:linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.14) 37%, rgba(255,255,255,0.06) 63%); background-size:400% 100%; border-radius:4px; animation:shimmer 1.4s infinite;}
+@keyframes shimmer{0%{background-position:100% 0;} 100%{background-position:0 0;}}
+@media (max-width:920px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+.stats-foot{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem; margin-top:1.6rem; padding-top:1.4rem; border-top:1px solid rgba(255,255,255,0.1);}
+.stats-foot small{color:rgba(255,255,255,0.5); font-size:0.8rem;}
+.explorer-links{display:flex; gap:0.8rem; flex-wrap:wrap;}
+.explorer-links a{font-size:0.8rem; color:rgba(255,255,255,0.75); text-decoration:none; border:1px solid rgba(255,255,255,0.25); border-radius:3px; padding:0.4em 0.8em; transition:all .18s ease;}
+.explorer-links a:hover{color:#fff; border-color:#fff;}
+
+/* ---------- WHY DELEGATE ---------- */
+.card-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:1.6rem;}
+@media (max-width:980px){.card-grid{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:560px){.card-grid{grid-template-columns:1fr;}}
+.card{background:var(--paper); border:1px solid var(--line); border-radius:4px; padding:2rem 1.7rem; box-shadow:var(--shadow);}
+.card .icon{width:34px; height:34px; margin-bottom:1.2rem; color:var(--marine-deep);}
+.card h3{font-size:1.15rem; margin-bottom:0.5rem;}
+.card p{color:var(--muted); font-size:0.98rem; margin-bottom:0;}
+
+/* ---------- MISSION ---------- */
+.mission{background:var(--ink); color:#eef4f2; position:relative; overflow:hidden;}
+.mission-grid{display:grid; grid-template-columns:0.85fr 1.15fr; gap:clamp(2rem,5vw,5rem); align-items:center;}
+@media (max-width:900px){.mission-grid{grid-template-columns:1fr;}}
+.mission-img{position:relative; border-radius:4px; overflow:hidden; box-shadow:0 30px 60px -20px rgba(0,0,0,0.55);}
+.mission-img img{width:100%; height:100%; object-fit:cover; aspect-ratio:3/4;}
+.mission-img figcaption{position:absolute; left:0; right:0; bottom:0; padding:1rem 1.2rem; background:linear-gradient(0deg, rgba(8,18,26,0.85), transparent); font-family:'IBM Plex Mono'; font-size:0.72rem; letter-spacing:0.06em; color:rgba(255,255,255,0.75);}
+.mission h2{color:#fff;}
+.mission .eyebrow{color:var(--gold);}
+.mission .eyebrow::before{background:var(--gold);}
+.mission blockquote{font-family:'Fraunces'; font-style:italic; font-weight:500; font-size:clamp(1.3rem,2.2vw,1.7rem); color:#fff; margin:1.6rem 0; padding-left:1.3rem; border-left:2px solid var(--gold); line-height:1.4;}
+.mission p{color:rgba(238,244,242,0.78);}
+
+/* ---------- ISLAND ---------- */
+.island-grid{display:grid; grid-template-columns:1.1fr 0.9fr; gap:clamp(2rem,5vw,4rem); align-items:start;}
+@media (max-width:900px){.island-grid{grid-template-columns:1fr;}}
+.island-figure{border-radius:4px; overflow:hidden; box-shadow:var(--shadow); margin-bottom:1.5rem;}
+.island-figure img{width:100%;}
+.fact-list{list-style:none; margin:0; padding:0; display:grid; gap:1rem;}
+.fact-list li{display:flex; justify-content:space-between; gap:1rem; padding:0.9rem 0; border-bottom:1px solid var(--line); font-size:0.95rem;}
+.fact-list b{font-family:'IBM Plex Mono'; font-weight:600; color:var(--marine-deep); text-align:right; font-variant-numeric:tabular-nums;}
+.fact-list span:first-child{color:var(--muted);}
+
+/* ---------- MILESTONES ---------- */
+.timeline{position:relative; margin-top:1rem; padding-left:2rem; border-left:2px solid var(--line);}
+.tl-item{position:relative; padding-bottom:2.4rem;}
+.tl-item:last-child{padding-bottom:0;}
+.tl-item::before{content:""; position:absolute; left:-2.05rem; top:0.35rem; width:11px; height:11px; border-radius:50%; background:var(--gold); border:3px solid var(--foam); box-shadow:0 0 0 2px var(--gold);}
+.tl-date{font-family:'IBM Plex Mono'; font-size:0.78rem; color:var(--gold-deep); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.3rem;}
+.tl-item h4{margin-bottom:0.3rem; font-size:1.15rem;}
+.tl-item p{color:var(--muted); margin-bottom:0;}
+
+/* ---------- STAKING 101 ---------- */
+.staking101{background:var(--paper);}
+.fact-strip{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:4px; overflow:hidden; margin-top:2.5rem;}
+@media (max-width:820px){.fact-strip{grid-template-columns:repeat(2,1fr);}}
+.fact-strip div{background:var(--paper); padding:1.5rem; text-align:center;}
+.fact-strip b{display:block; font-family:'Fraunces'; font-size:1.15rem; color:var(--ink); margin-bottom:0.3rem;}
+.fact-strip span{font-size:0.78rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;}
+.two-col{display:grid; grid-template-columns:1fr 1fr; gap:3rem;}
+@media (max-width:820px){.two-col{grid-template-columns:1fr;}}
+
+/* ---------- HOW TO ---------- */
+.steps{counter-reset:step; display:grid; grid-template-columns:repeat(3,1fr); gap:1.8rem; margin-top:2.5rem;}
+@media (max-width:900px){.steps{grid-template-columns:1fr;}}
+.step{position:relative; padding-top:0.5rem;}
+.step::before{counter-increment:step; content:counter(step); font-family:'Fraunces'; font-weight:700; font-size:2.6rem; color:var(--gold); display:block; margin-bottom:0.6rem; line-height:1;}
+.step h4{margin-bottom:0.4rem;}
+.step p{color:var(--muted); font-size:0.96rem;}
+.id-box{margin-top:3rem; background:var(--ink); color:#fff; border-radius:6px; padding:1.8rem 2rem; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1.2rem;}
+.id-box .id-row{display:flex; flex-direction:column; gap:0.35rem;}
+.id-box label{font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:rgba(255,255,255,0.5);}
+.id-box .id-val{display:flex; align-items:center; gap:0.7rem; font-family:'IBM Plex Mono'; font-size:0.92rem; color:#fff; word-break:break-all;}
+.copy-btn{background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); color:#fff; border-radius:3px; padding:0.3em 0.6em; font-size:0.72rem; cursor:pointer; font-family:'Inter'; flex-shrink:0; transition:background .18s ease;}
+.copy-btn:hover{background:rgba(255,255,255,0.22);}
+
+/* ---------- CONTACT ---------- */
+.contact-grid{display:grid; grid-template-columns:0.9fr 1.1fr; gap:clamp(2rem,5vw,4rem);}
+@media (max-width:900px){.contact-grid{grid-template-columns:1fr;}}
+.contact-info a{color:var(--marine-deep); text-decoration:none; font-weight:600;}
+.contact-info a:hover{text-decoration:underline;}
+.contact-list{list-style:none; margin:2rem 0 0; padding:0; display:grid; gap:1.4rem;}
+.contact-list li{display:flex; gap:1rem; align-items:flex-start;}
+.contact-list .ci{width:20px; height:20px; flex-shrink:0; margin-top:0.2rem; color:var(--gold-deep);}
+form{display:grid; gap:1rem;}
+.form-row{display:grid; grid-template-columns:1fr 1fr; gap:1rem;}
+@media (max-width:560px){.form-row{grid-template-columns:1fr;}}
+input,textarea{
+  width:100%; padding:0.85em 1em; border:1px solid var(--line); border-radius:3px; font-family:'Inter'; font-size:0.95rem;
+  background:var(--paper); color:var(--text);
+}
+input:focus,textarea:focus{outline:2px solid var(--marine); outline-offset:1px; border-color:var(--marine);}
+textarea{min-height:130px; resize:vertical;}
+label.field-label{font-size:0.78rem; color:var(--muted); margin-bottom:0.3em; display:block;}
+
+/* ---------- FOOTER ---------- */
+footer{background:var(--ink); color:rgba(255,255,255,0.6); padding:3rem 0 2rem;}
+.footer-grid{display:flex; flex-wrap:wrap; justify-content:space-between; gap:1.5rem; align-items:center; border-bottom:1px solid rgba(255,255,255,0.12); padding-bottom:2rem; margin-bottom:1.5rem;}
+.footer-brand{display:flex; align-items:center; gap:0.6rem; color:#fff; font-family:'Fraunces'; font-weight:600; font-size:1.1rem;}
+.footer-links{display:flex; gap:1.5rem; flex-wrap:wrap; font-size:0.85rem;}
+.footer-links a{color:rgba(255,255,255,0.65); text-decoration:none;}
+.footer-links a:hover{color:#fff;}
+.footer-bottom{display:flex; flex-wrap:wrap; justify-content:space-between; gap:0.8rem; font-size:0.78rem; font-family:'IBM Plex Mono';}
+
+/* ---------- REVEAL ---------- */
+.reveal{opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s ease;}
+.reveal.is-visible{opacity:1; transform:translateY(0);}
+
+.divider{display:flex; justify-content:center; padding:0.5rem 0;}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="siteNav">
+  <div class="nav-inner">
+    <a href="#top" class="brand">
+      <svg class="brand-mark" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 20L15 4L21 20" stroke="#c9973f" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 20L15 4" stroke="#c9973f" stroke-width="1.6"/></svg>
+      <span class="brand-name">SAMOS</span><span class="brand-ticker">[SAMOS]</span>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#stats">Live Stats</a></li>
+      <li><a href="#why">Why Delegate</a></li>
+      <li><a href="#mission">Mission</a></li>
+      <li><a href="#island">The Island</a></li>
+      <li><a href="#staking101">Staking</a></li>
+      <li><a href="#howto">How to Delegate</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a class="btn btn-gold btn-sm" href="https://cexplorer.io/pool/pool158je65d93ghx2sedvazczpxjvnx0k6mwxwup8vv6uxnz2x0xal4/delegate#instant" target="_blank" rel="noopener">Delegate</a>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">&#9776;</button>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="hero-inner">
+    <p class="eyebrow">37.75&deg; N &middot; 26.98&deg; E &mdash; Eastern Aegean, Greece</p>
+    <h1>Stake Pool SAMOS</h1>
+    <p class="sub">One operator. One pool. Run from a small Greek island, in support of a fairer, more decentralized Cardano.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-gold" href="https://cexplorer.io/pool/pool158je65d93ghx2sedvazczpxjvnx0k6mwxwup8vv6uxnz2x0xal4/delegate#instant" target="_blank" rel="noopener">Delegate Now &rarr;</a>
+      <a class="btn btn-ghost" href="#staking101">What is staking?</a>
+    </div>
+    <div class="hero-facts">
+      <div class="hero-fact"><b class="mono">SAMOS</b><span>Ticker</span></div>
+      <div class="hero-fact"><b class="mono">Single&nbsp;pool</b><span>Operator commitment</span></div>
+      <div class="hero-fact"><b class="mono">Non&#8209;custodial</b><span>Your ADA never moves</span></div>
+      <div class="hero-fact"><b class="mono">~5 days</b><span>Reward cycle (1 epoch)</span></div>
+    </div>
+  </div>
+</header>
+
+<section class="stats" id="stats">
+  <div class="wrap">
+    <div class="stats-top reveal">
+      <div>
+        <p class="eyebrow">On&#8209;chain, right now</p>
+        <h2>Live pool stats</h2>
+        <p>Pulled directly from the Cardano blockchain when this page loads &mdash; not hand-typed, never stale.</p>
+      </div>
+      <div class="stats-status" id="statsStatus"><span class="dot" id="statsDot"></span><span id="statsStatusText">Fetching from chain&hellip;</span></div>
+    </div>
+
+    <div class="stat-grid reveal">
+      <div class="stat-tile"><div class="label">Pledge</div><div class="value skeleton" id="statPledge">&nbsp;</div></div>
+      <div class="stat-tile"><div class="label">Fixed Fee</div><div class="value skeleton" id="statFixed">&nbsp;</div></div>
+      <div class="stat-tile"><div class="label">Margin</div><div class="value skeleton" id="statMargin">&nbsp;</div></div>
+      <div class="stat-tile"><div class="label">Pool Status</div><div class="value skeleton" id="statPoolStatus">&nbsp;</div></div>
+      <div class="stat-tile"><div class="label">Live Stake</div><div class="value skeleton" id="statLiveStake">&nbsp;</div></div>
+      <div class="stat-tile"><div class="label">Saturation</div><div class="value skeleton" id="statSaturation">&nbsp;</div></div>
+      <div class="stat-tile"><div class="label">Delegators</div><div class="value skeleton" id="statDelegators">&nbsp;</div></div>
+      <div class="stat-tile"><div class="label">Blocks Minted</div><div class="value skeleton" id="statBlocks">&nbsp;</div></div>
+    </div>
+
+    <div class="stats-foot">
+      <small id="statsSource">Source: Koios public API, queried live from your browser.</small>
+      <div class="explorer-links">
+        <a href="https://pooltool.io/pool/pool158je65d93ghx2sedvazczpxjvnx0k6mwxwup8vv6uxnz2x0xal4" target="_blank" rel="noopener">Verify on PoolTool &#8599;</a>
+        <a href="https://cardanoscan.io/pool/pool158je65d93ghx2sedvazczpxjvnx0k6mwxwup8vv6uxnz2x0xal4" target="_blank" rel="noopener">Verify on Cardanoscan &#8599;</a>
+        <a href="https://adastat.net/pools/pool158je65d93ghx2sedvazczpxjvnx0k6mwxwup8vv6uxnz2x0xal4" target="_blank" rel="noopener">Verify on AdaStat &#8599;</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="why">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">Why delegate</p>
+      <h2>Four reasons to stake with SAMOS</h2>
+      <p>Delegating is simple, reversible, and never puts your ADA at risk. Here&rsquo;s what backing SAMOS actually does.</p>
+    </div>
+    <div class="card-grid">
+      <div class="card reveal">
+        <svg class="icon" viewBox="0 0 24 24" fill="none"><rect x="3" y="10" width="18" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M7 10V7a5 5 0 0110 0v3" stroke="currentColor" stroke-width="1.5"/></svg>
+        <h3>You keep full ownership</h3>
+        <p>Delegating never moves, locks, or risks your ADA. It stays in your wallet, under your own keys, the entire time &mdash; spend it, transfer it, or switch pools whenever you like.</p>
+      </div>
+      <div class="card reveal">
+        <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        <h3>You help secure the network</h3>
+        <p>Cardano is only as decentralized as the pools people choose. Delegating to a small, independent operator resists the concentration of stake in a handful of large pools.</p>
+      </div>
+      <div class="card reveal">
+        <svg class="icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v8M9 10.5c0-1.4 1.3-2.5 3-2.5s3 .9 3 2c0 3-6 1.5-6 4.5 0 1.1 1.3 2 3 2s3-1.1 3-2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <h3>You earn staking rewards</h3>
+        <p>Delegated ADA earns rewards roughly every 5 days, paid automatically to your wallet. Estimate your return with the official <a href="https://cardano.org/calculator/" target="_blank" rel="noopener">Cardano staking calculator</a>.</p>
+      </div>
+      <div class="card reveal">
+        <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 20l10-5 10 5L12 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        <h3>You back real decentralization</h3>
+        <p>SAMOS runs one pool, on our own hardware, and always will. No multi-pool empire, no ticket-farming &mdash; one operator standing behind one pool.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mission" id="mission">
+  <div class="wrap">
+    <div class="mission-grid">
+      <figure class="mission-img reveal">
+        <img src="images/samos-pythagoras-statue.jpg" alt="Statue of Pythagoras of Samos on the harbourfront, arm raised toward the sea, beside a large bronze right-triangle sculpture." loading="lazy">
+        <figcaption>Pythagoras of Samos, 580&ndash;496&nbsp;BC &middot; harbourfront, Pythagoreio</figcaption>
+      </figure>
+      <div class="reveal">
+        <p class="eyebrow">Our mission</p>
+        <h2>A decentralized alternative for the world&rsquo;s future finance</h2>
+        <blockquote>&ldquo;Twenty-five centuries ago, a mathematician from this island taught that the world could be understood through proof, not proclamation.&rdquo;</blockquote>
+        <p>We believe in a fairer, more decentralized model for global finance. Cardano earns that trust the same way Pythagoras did: through rigor. Its Ouroboros protocol is peer-reviewed, proof-of-stake research rather than a whitepaper written to chase a trend &mdash; academic in method, and a fraction of the energy cost of proof-of-work chains.</p>
+        <p>That approach also opens the network to anyone willing to run the software, not just those who can afford industrial mining hardware. SAMOS exists because of that opening: a single, independently run stake pool, based on the island that gave the world its first mathematician, supporting Cardano one block at a time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="island">
+  <div class="wrap">
+    <div class="island-grid">
+      <div class="reveal">
+        <p class="eyebrow">Where we operate from</p>
+        <h2>Samos, Greece</h2>
+        <figure class="island-figure">
+          <img src="images/samos-town-daylight.jpg" alt="Aerial view of Samos Town and its harbour, whitewashed houses with terracotta roofs along the Aegean coastline, mountains in the distance." loading="lazy">
+        </figure>
+        <p>Samos sits in the eastern Aegean, separated from the Turkish coast by the narrow Mycale Strait, between Chios to the north and Patmos to the south. In antiquity it was a prosperous, wine-trading city-state and the birthplace of the mathematician Pythagoras, the philosophers Melissus and Epicurus, and the astronomer Aristarchus, who argued &mdash; nearly 1,800 years before Copernicus &mdash; that the Earth revolves around the Sun.</p>
+        <p>Two of the island&rsquo;s ancient sites, Pythagoreio and the Heraion of Samos with its Eupalinian aqueduct, hold UNESCO World Heritage status. The aqueduct itself is a small marvel of distributed engineering: two crews dug a tunnel through a mountain from opposite ends, meeting almost precisely in the middle, over 2,500 years ago.</p>
+        <p>Mediterranean summers here are hot and dry, winters mild and rainy &mdash; conditions well suited to solar power, and part of why we run our infrastructure with sustainability in mind. The island is also home to golden jackals, stone martens, wild boar, flamingos, and one of the Mediterranean&rsquo;s last populations of monk seal.</p>
+      </div>
+      <div class="reveal">
+        <ul class="fact-list">
+          <li><span>Location</span><b>37.75&deg;N, 26.98&deg;E</b></li>
+          <li><span>Nearest strait</span><b>Mycale (Turkey)</b></li>
+          <li><span>Avg. temperature</span><b>18.4&deg;C</b></li>
+          <li><span>Annual rainfall</span><b>~705mm</b></li>
+          <li><span>Temperature range</span><b>&minus;3.4&deg;C to 43.0&deg;C</b></li>
+          <li><span>UNESCO sites</span><b>Pythagoreio &amp; Heraion</b></li>
+          <li><span>Notable native</span><b>Pythagoras, b. 580&nbsp;BC</b></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:var(--paper); border-top:1px solid var(--line); border-bottom:1px solid var(--line);">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">Our journey</p>
+      <h2>Milestones</h2>
+      <p>A small pool, building a track record one epoch at a time.</p>
+    </div>
+    <div class="timeline reveal">
+      <div class="tl-item">
+        <div class="tl-date">Epoch 548 &middot; Pool registered</div>
+        <h4>SAMOS goes live on Cardano mainnet</h4>
+        <p>Samos Island gets its first Cardano stake pool. Registered on-chain in epoch 548 and open for delegation from day one.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">Epoch 562 &middot; First block</div>
+        <h4>First block minted</h4>
+        <p>SAMOS mints its first block on the Cardano blockchain in epoch 562 &mdash; the moment a stake pool starts earning its keep.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">Ongoing</div>
+        <h4>Growing, one delegator at a time</h4>
+        <p>Still a single operator, still a single pool, kept running around the clock as a standing contribution to the decentralization of the system. Current standing is always visible in the live stats above.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section staking101" id="staking101">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">New to this?</p>
+      <h2>What is Cardano staking?</h2>
+      <p>Cardano secures its network through Proof-of-Stake, not energy-hungry mining. Here&rsquo;s the short version.</p>
+    </div>
+    <div class="two-col reveal">
+      <div>
+        <p>Cardano runs on <strong>Ouroboros</strong>, a proof-of-stake protocol: instead of miners racing to solve puzzles, the right to add the next block is assigned to stake pools in rough proportion to how much ADA is delegated to them. More delegation, more chances to produce blocks &mdash; and every block produced earns rewards for the pool and everyone delegating to it.</p>
+        <p><strong>Delegating is not the same as depositing.</strong> Your ADA never leaves your wallet, is never custodied by SAMOS, and is never locked. You can undelegate, redelegate, or spend your ADA at any moment, with no penalty.</p>
+      </div>
+      <div>
+        <p>Rewards are calculated every epoch (about 5 days) and paid automatically to your wallet roughly two epochs later &mdash; no claiming, no manual steps. Returns vary with network conditions and pool performance, but have historically sat in the low single digits of annual percentage yield; check the <a href="https://cardano.org/calculator/" target="_blank" rel="noopener">official Cardano calculator</a> for current estimates.</p>
+        <p>Choosing a pool is really choosing who you trust to run reliable, honest infrastructure &mdash; and how much you value keeping the network decentralized rather than concentrated in a few large operators.</p>
+      </div>
+    </div>
+    <div class="fact-strip reveal">
+      <div><b>Non-custodial</b><span>You hold your keys</span></div>
+      <div><b>No lock-up</b><span>Undelegate anytime</span></div>
+      <div><b>No minimum</b><span>Delegate any amount</span></div>
+      <div><b>~5 day epochs</b><span>Automatic reward cycle</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="howto" style="background:var(--foam);">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">Getting started</p>
+      <h2>How to delegate to SAMOS</h2>
+      <p>Three steps, a few minutes, one small network fee. No account, no sign-up, no KYC.</p>
+    </div>
+    <div class="steps reveal">
+      <div class="step">
+        <h4>Get a Cardano wallet</h4>
+        <p>Install a light wallet such as Eternl, Lace, Yoroi, or Nami, and make sure it holds some ADA (a couple of ADA extra covers the one-off delegation fee).</p>
+      </div>
+      <div class="step">
+        <h4>Open &ldquo;Delegate&rdquo; or &ldquo;Staking&rdquo;</h4>
+        <p>Inside your wallet, find the staking / delegation screen and search for the pool by ticker or by pasting the Pool ID below.</p>
+      </div>
+      <div class="step">
+        <h4>Confirm &amp; you&rsquo;re staking</h4>
+        <p>Approve the transaction. Your ADA stays put; rewards begin arriving automatically within a couple of epochs.</p>
+      </div>
+    </div>
+    <div class="id-box reveal">
+      <div class="id-row">
+        <label>Ticker</label>
+        <div class="id-val"><span>SAMOS</span><button class="copy-btn" data-copy="SAMOS">Copy</button></div>
+      </div>
+      <div class="id-row" style="flex:1; min-width:280px;">
+        <label>Pool ID (bech32)</label>
+        <div class="id-val"><span>pool158je65d93ghx2sedvazczpxjvnx0k6mwxwup8vv6uxnz2x0xal4</span><button class="copy-btn" data-copy="pool158je65d93ghx2sedvazczpxjvnx0k6mwxwup8vv6uxnz2x0xal4">Copy</button></div>
+      </div>
+      <a class="btn btn-gold" href="https://cexplorer.io/pool/pool158je65d93ghx2sedvazczpxjvnx0k6mwxwup8vv6uxnz2x0xal4/delegate#instant" target="_blank" rel="noopener">Delegate Instantly &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="contact">
+  <div class="wrap">
+    <div class="contact-grid">
+      <div class="reveal contact-info">
+        <p class="eyebrow">Get in touch</p>
+        <h2>Questions? Say hello.</h2>
+        <p>Run by one operator, so you&rsquo;ll hear back from the person actually running the pool &mdash; not a support queue.</p>
+        <ul class="contact-list">
+          <li>
+            <svg class="ci" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M3 7l9 6 9-6" stroke="currentColor" stroke-width="1.5"/></svg>
+            <div><strong>Email</strong><br><a href="mailto:samosstakepool@outlook.com">samosstakepool@outlook.com</a></div>
+          </li>
+          <li>
+            <svg class="ci" viewBox="0 0 24 24" fill="none"><path d="M4 4l7.5 9.5L4.5 20H7l5.8-5.6L17 20h3l-7.9-10L19.5 4H17l-5.2 5-4.3-5H4z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+            <div><strong>X (Twitter)</strong><br><a href="https://x.com/chri5tos1" target="_blank" rel="noopener">@chri5tos1</a></div>
+          </li>
+        </ul>
+      </div>
+      <form action="https://formspree.io/f/xpwpwrlr" method="POST" class="reveal">
+        <div class="form-row">
+          <div>
+            <label class="field-label" for="name">Name</label>
+            <input type="text" id="name" name="name" required>
+          </div>
+          <div>
+            <label class="field-label" for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+          </div>
+        </div>
+        <div>
+          <label class="field-label" for="message">Message</label>
+          <textarea id="message" name="message" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-line" style="justify-self:start;">Send Message</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 20L15 4L21 20" stroke="#c9973f" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 20L15 4" stroke="#c9973f" stroke-width="1.6"/></svg>
+        SAMOS &mdash; Cardano Stake Pool
+      </div>
+      <div class="footer-links">
+        <a href="#stats">Live Stats</a>
+        <a href="#staking101">Staking</a>
+        <a href="#howto">How to Delegate</a>
+        <a href="#contact">Contact</a>
+        <a href="https://cexplorer.io/pool/pool158je65d93ghx2sedvazczpxjvnx0k6mwxwup8vv6uxnz2x0xal4/delegate#instant" target="_blank" rel="noopener">Delegate</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>Ticker SAMOS &middot; Pool ID pool158je65d93ghx2sedvazczpxjvnx0k6mwxwup8vv6uxnz2x0xal4</span>
+      <span>&copy; <span id="year"></span> Samos Staking &middot; Run from Samos, Greece</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+
+// nav solid on scroll
+const nav = document.getElementById('siteNav');
+const onScroll = () => nav.classList.toggle('solid', window.scrollY > 40);
+document.addEventListener('scroll', onScroll, {passive:true});
+onScroll();
+
+// mobile nav toggle
+const navToggle = document.getElementById('navToggle');
+const navLinks = document.getElementById('navLinks');
+navToggle.addEventListener('click', () => {
+  const open = navLinks.classList.toggle('open');
+  navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  nav.classList.toggle('solid', open || window.scrollY > 40);
+});
+navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+  navLinks.classList.remove('open');
+  navToggle.setAttribute('aria-expanded', 'false');
+}));
+
+// scroll reveal
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (reduceMotion) {
+  document.querySelectorAll('.reveal').forEach(el => el.classList.add('is-visible'));
+} else if ('IntersectionObserver' in window) {
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target); } });
+  }, {threshold:0.12});
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+} else {
+  document.querySelectorAll('.reveal').forEach(el => el.classList.add('is-visible'));
+}
+
+// copy buttons
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const val = btn.getAttribute('data-copy');
+    try {
+      await navigator.clipboard.writeText(val);
+      const orig = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => btn.textContent = orig, 1400);
+    } catch (e) {
+      btn.textContent = 'Select & copy manually';
+    }
+  });
+});
+
+// ---- Live pool stats via Koios public API ----
+const POOL_BECH32 = 'pool158je65d93ghx2sedvazczpxjvnx0k6mwxwup8vv6uxnz2x0xal4';
+
+function lovelaceToAda(lovelace, decimals) {
+  if (lovelace === undefined || lovelace === null) return null;
+  const n = Number(lovelace) / 1000000;
+  return n.toLocaleString(undefined, {maximumFractionDigits: decimals ?? 0});
+}
+
+function setStat(id, text) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text;
+  el.classList.remove('skeleton');
+}
+
+function setAllStatsUnavailable() {
+  ['statPledge','statFixed','statMargin','statPoolStatus','statLiveStake','statSaturation','statDelegators','statBlocks']
+    .forEach(id => setStat(id, '—'));
+  const dot = document.getElementById('statsDot');
+  const txt = document.getElementById('statsStatusText');
+  dot.classList.add('warn');
+  txt.textContent = 'Live fetch unavailable here — verify via the links below';
+}
+
+async function loadPoolStats() {
+  try {
+    const res = await fetch('https://api.koios.rest/api/v1/pool_info', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Accept':'application/json'},
+      body: JSON.stringify({_pool_bech32_ids: [POOL_BECH32]})
+    });
+    if (!res.ok) throw new Error('bad status ' + res.status);
+    const data = await res.json();
+    const pool = Array.isArray(data) ? data[0] : null;
+    if (!pool) throw new Error('no pool data returned');
+
+    setStat('statPledge', pool.pledge != null ? lovelaceToAda(pool.pledge, 0) + ' ₳' : '—');
+    setStat('statFixed', pool.fixed_cost != null ? lovelaceToAda(pool.fixed_cost, 0) + ' ₳' : '—');
+    setStat('statMargin', pool.margin != null ? (Number(pool.margin) * 100).toLocaleString(undefined,{maximumFractionDigits:2}) + '%' : '—');
+    setStat('statPoolStatus', pool.pool_status ? pool.pool_status.charAt(0).toUpperCase() + pool.pool_status.slice(1) : '—');
+
+    const liveStakeLovelace = pool.live_stake ?? pool.active_stake;
+    setStat('statLiveStake', liveStakeLovelace != null ? lovelaceToAda(liveStakeLovelace, 0) + ' ₳' : '—');
+    setStat('statSaturation', pool.live_saturation != null ? (Number(pool.live_saturation) * 100).toLocaleString(undefined,{maximumFractionDigits:3}) + '%' : '—');
+    setStat('statDelegators', pool.live_delegators != null ? Number(pool.live_delegators).toLocaleString() : '—');
+    setStat('statBlocks', pool.block_count != null ? Number(pool.block_count).toLocaleString() : '—');
+
+    const dot = document.getElementById('statsDot');
+    const txt = document.getElementById('statsStatusText');
+    dot.classList.remove('warn');
+    txt.textContent = 'Live — fetched just now';
+    document.getElementById('statsSource').textContent = 'Source: Koios public API (api.koios.rest), queried live from your browser at ' + new Date().toLocaleTimeString() + '.';
+  } catch (err) {
+    console.warn('Live stats fetch failed:', err);
+    setAllStatsUnavailable();
+  }
+}
+
+loadPoolStats();
+</script>
+</body>
+</html>
