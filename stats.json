@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-08-26T18:55:00Z",
+  "generated_at": "2026-08-26T19:19:18Z",
   "pledge_ada": 1100,
   "fixed_fee_ada": 170,
-  "margin_pct": 0,
+  "margin_pct": 0.0,
   "pool_status": "registered",
   "active_stake_ada": 1123,
   "live_stake_ada": 1123,
-  "saturation_pct": null,
-  "delegators": null,
-  "blocks_minted": null
+  "saturation_pct": 0.0,
+  "delegators": 2,
+  "blocks_minted": 1
 }
